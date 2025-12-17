@@ -52,7 +52,7 @@ items:
 
   - name: Challenger Deep
     labels:
-      vibe: action, security
+      vibe: action
       energy: medium
       mood: mysterious
       use-case: exploration
@@ -352,6 +352,7 @@ items:
       mood: serious
       use-case: work
       brightness: dark
+      feedback: dislike
 
   # === DOOM / OMINOUS ===
   - name: Doom One
@@ -398,7 +399,7 @@ items:
 
   - name: Dracula
     labels:
-      vibe: balanced, security
+      vibe: balanced
       energy: medium
       mood: cool
       use-case: default
