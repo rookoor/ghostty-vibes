@@ -36,6 +36,9 @@ APPLY=false
 LIST_LABELS=false
 SHOW_CURRENT=false
 TOGGLE_DISLIKE=false
+SET_WINDOW=false
+SYNC_WINDOW=false
+INSTALL_HOOKS=false
 
 for arg in "$@"; do
     case "$arg" in
@@ -55,6 +58,16 @@ for arg in "$@"; do
         --dislike|-d)
             TOGGLE_DISLIKE=true
             ;;
+        --set-window|-w)
+            SET_WINDOW=true
+            RANDOM_PICK=true
+            ;;
+        --sync|-s)
+            SYNC_WINDOW=true
+            ;;
+        --install-hooks)
+            INSTALL_HOOKS=true
+            ;;
         --help|-h)
             echo "Usage: theme-select [selectors] [options]"
             echo ""
@@ -67,6 +80,9 @@ for arg in "$@"; do
             echo "  --list-labels   Show all available label keys and values"
             echo "  --current       Show currently configured theme"
             echo "  --dislike, -d   Toggle dislike on current theme"
+            echo "  --set-window    Set theme for current tmux window"
+            echo "  --sync          Apply theme for current tmux window"
+            echo "  --install-hooks Install tmux hooks for auto-sync"
             echo ""
             echo "Examples:"
             echo "  theme-select vibe=action"
@@ -136,6 +152,39 @@ PYEOF
         fi
     else
         echo "No ghostty config found"
+    fi
+    exit 0
+fi
+
+# Install tmux hooks for auto-sync
+if $INSTALL_HOOKS; then
+    if [ -n "$TMUX" ]; then
+        SCRIPT_PATH="$HOME/.local/bin/theme-select"
+        if [ ! -f "$SCRIPT_PATH" ]; then
+            SCRIPT_PATH="$SCRIPT_DIR/theme-select"
+        fi
+        tmux set-hook -g after-select-window "run-shell '$SCRIPT_PATH --sync'"
+        echo "Installed tmux hook: after-select-window"
+        echo "Theme will auto-sync when switching windows"
+    else
+        echo "Not in tmux, cannot install hooks"
+        exit 1
+    fi
+    exit 0
+fi
+
+# Sync theme from current tmux window
+if $SYNC_WINDOW; then
+    if [ -n "$TMUX" ]; then
+        WINDOW_THEME=$(tmux show-window-option -v @theme 2>/dev/null || echo "")
+        if [ -n "$WINDOW_THEME" ]; then
+            # Apply theme to config
+            if [ -f "$GHOSTTY_CONFIG" ]; then
+                grep -v "^theme" "$GHOSTTY_CONFIG" > "$GHOSTTY_CONFIG.tmp" || true
+                echo "theme = $WINDOW_THEME" >> "$GHOSTTY_CONFIG.tmp"
+                mv "$GHOSTTY_CONFIG.tmp" "$GHOSTTY_CONFIG"
+            fi
+        fi
     fi
     exit 0
 fi
@@ -321,7 +370,18 @@ if $RANDOM_PICK; then
     echo -e "${GREEN}Selected:${NC} $THEME_NAME"
     echo -e "${CYAN}Labels:${NC} $LABELS"
 
-    if $APPLY; then
+    if $SET_WINDOW; then
+        # Store theme in tmux window option
+        if [ -n "$TMUX" ]; then
+            tmux set-window-option @theme "$THEME_NAME"
+            echo -e "${GREEN}Set for window:${NC} $(tmux display-message -p '#W')"
+        else
+            echo "Not in tmux, cannot set window theme"
+            exit 1
+        fi
+    fi
+
+    if $APPLY || $SET_WINDOW; then
         # Update ghostty config
         if [ -f "$GHOSTTY_CONFIG" ]; then
             # Remove existing theme line and add new one
@@ -332,7 +392,9 @@ if $RANDOM_PICK; then
             mkdir -p "$(dirname "$GHOSTTY_CONFIG")"
             echo "theme = $THEME_NAME" > "$GHOSTTY_CONFIG"
         fi
-        echo -e "${GREEN}Applied to config!${NC} Reload ghostty (Cmd+Shift+,)"
+        if ! $SET_WINDOW; then
+            echo -e "${GREEN}Applied to config!${NC} Reload ghostty (Cmd+Shift+,)"
+        fi
     fi
 else
     # List all matches
