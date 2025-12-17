@@ -329,7 +329,7 @@ items:
       use-case: work
       brightness: dark
 
-  - name: GitHub Light
+  - name: GitHub Light Default
     labels:
       vibe: professional
       energy: medium
