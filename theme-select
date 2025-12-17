@@ -1,0 +1,283 @@
+#!/usr/bin/env bash
+# theme-select: Kubernetes-style theme selector
+#
+# Usage:
+#   theme-select vibe=action                    # List themes with vibe=action
+#   theme-select use-case=test                  # List themes for testing
+#   theme-select vibe=cozy energy=low           # Multiple selectors (AND)
+#   theme-select vibe=action --random           # Pick random match
+#   theme-select vibe=focus --apply             # Apply random match to ghostty
+#   theme-select --list-labels                  # Show all available labels
+#   theme-select --current                      # Show current theme
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+THEMES_FILE="$SCRIPT_DIR/themes.yaml"
+GHOSTTY_CONFIG="$HOME/.config/ghostty/config"
+
+# Colors
+CYAN='\033[0;36m'
+YELLOW='\033[1;33m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+
+# Parse arguments
+SELECTORS=()
+RANDOM_PICK=false
+APPLY=false
+LIST_LABELS=false
+SHOW_CURRENT=false
+
+for arg in "$@"; do
+    case "$arg" in
+        --random|-r)
+            RANDOM_PICK=true
+            ;;
+        --apply|-a)
+            APPLY=true
+            RANDOM_PICK=true
+            ;;
+        --list-labels|-l)
+            LIST_LABELS=true
+            ;;
+        --current|-c)
+            SHOW_CURRENT=true
+            ;;
+        --help|-h)
+            echo "Usage: theme-select [selectors] [options]"
+            echo ""
+            echo "Selectors:"
+            echo "  key=value    Match themes where label key equals value"
+            echo ""
+            echo "Options:"
+            echo "  --random, -r    Pick a random match"
+            echo "  --apply, -a     Apply random match to ghostty config"
+            echo "  --list-labels   Show all available label keys and values"
+            echo "  --current       Show currently configured theme"
+            echo ""
+            echo "Examples:"
+            echo "  theme-select vibe=action"
+            echo "  theme-select use-case=test --random"
+            echo "  theme-select energy=low mood=calm --apply"
+            exit 0
+            ;;
+        *=*)
+            SELECTORS+=("$arg")
+            ;;
+    esac
+done
+
+# Show current theme
+if $SHOW_CURRENT; then
+    if [ -f "$GHOSTTY_CONFIG" ]; then
+        current=$(grep "^theme" "$GHOSTTY_CONFIG" 2>/dev/null | head -1 | cut -d'=' -f2 | xargs)
+        if [ -n "$current" ]; then
+            echo -e "${GREEN}Current theme:${NC} $current"
+        else
+            echo "No theme set in config"
+        fi
+    else
+        echo "No ghostty config found"
+    fi
+    exit 0
+fi
+
+# List all labels
+if $LIST_LABELS; then
+    echo -e "${CYAN}Available labels:${NC}"
+    echo ""
+
+    echo -e "${YELLOW}vibe:${NC}"
+    grep "vibe:" "$THEMES_FILE" | sed 's/.*vibe: //' | sort -u | sed 's/^/  /'
+    echo ""
+
+    echo -e "${YELLOW}energy:${NC}"
+    grep "energy:" "$THEMES_FILE" | sed 's/.*energy: //' | sort -u | sed 's/^/  /'
+    echo ""
+
+    echo -e "${YELLOW}mood:${NC}"
+    grep "mood:" "$THEMES_FILE" | sed 's/.*mood: //' | sort -u | sed 's/^/  /'
+    echo ""
+
+    echo -e "${YELLOW}use-case:${NC}"
+    grep "use-case:" "$THEMES_FILE" | sed 's/.*use-case: //' | sort -u | sed 's/^/  /'
+    echo ""
+
+    echo -e "${YELLOW}brightness:${NC}"
+    grep "brightness:" "$THEMES_FILE" | sed 's/.*brightness: //' | sort -u | sed 's/^/  /'
+    exit 0
+fi
+
+# No selectors? Show usage
+if [ ${#SELECTORS[@]} -eq 0 ]; then
+    echo "Usage: theme-select [selectors] [options]"
+    echo "Try: theme-select --help"
+    exit 1
+fi
+
+# Build awk filter from selectors
+# We'll parse the YAML and filter based on labels
+filter_themes() {
+    python3 << 'PYEOF' - "${SELECTORS[@]}"
+import sys
+import re
+
+selectors = {}
+for arg in sys.argv[1:]:
+    if '=' in arg:
+        k, v = arg.split('=', 1)
+        selectors[k] = v
+
+# Parse YAML manually (lightweight, no deps)
+current_theme = None
+current_labels = {}
+matches = []
+
+with open("THEMES_FILE_PATH", 'r') as f:
+    for line in f:
+        # New theme entry
+        if line.strip().startswith('- name:'):
+            # Check previous theme
+            if current_theme and current_labels:
+                match = True
+                for k, v in selectors.items():
+                    if current_labels.get(k) != v:
+                        match = False
+                        break
+                if match:
+                    matches.append((current_theme, current_labels.copy()))
+
+            current_theme = line.split(':', 1)[1].strip()
+            current_labels = {}
+
+        # Label line
+        elif ':' in line and current_theme:
+            line = line.strip()
+            if not line.startswith('#') and not line.startswith('-'):
+                parts = line.split(':', 1)
+                if len(parts) == 2:
+                    k = parts[0].strip()
+                    v = parts[1].strip()
+                    if k in ['vibe', 'energy', 'mood', 'use-case', 'brightness']:
+                        current_labels[k] = v
+
+# Check last theme
+if current_theme and current_labels:
+    match = True
+    for k, v in selectors.items():
+        if current_labels.get(k) != v:
+            match = False
+            break
+    if match:
+        matches.append((current_theme, current_labels.copy()))
+
+# Output
+for name, labels in matches:
+    label_str = ' '.join(f"{k}={v}" for k, v in labels.items())
+    print(f"{name}|{label_str}")
+PYEOF
+}
+
+# Run filter (replace path in python script)
+RESULTS=$(python3 << PYEOF
+import sys
+import re
+
+selectors = {}
+for arg in "${SELECTORS[@]}".split():
+    if '=' in arg:
+        k, v = arg.split('=', 1)
+        selectors[k] = v
+
+current_theme = None
+current_labels = {}
+matches = []
+
+def label_matches(label_value, search_value):
+    """Check if search_value matches label_value (supports comma-separated)"""
+    if not label_value:
+        return False
+    if ',' in label_value:
+        return search_value in [x.strip() for x in label_value.split(',')]
+    return label_value == search_value
+
+with open("$THEMES_FILE", 'r') as f:
+    for line in f:
+        if line.strip().startswith('- name:'):
+            if current_theme and current_labels:
+                match = True
+                for k, v in selectors.items():
+                    if not label_matches(current_labels.get(k), v):
+                        match = False
+                        break
+                if match:
+                    matches.append((current_theme, dict(current_labels)))
+
+            current_theme = line.split(':', 1)[1].strip()
+            current_labels = {}
+
+        elif ':' in line and current_theme:
+            line = line.strip()
+            if not line.startswith('#') and not line.startswith('-'):
+                parts = line.split(':', 1)
+                if len(parts) == 2:
+                    k = parts[0].strip()
+                    v = parts[1].strip()
+                    if k in ['vibe', 'energy', 'mood', 'use-case', 'brightness']:
+                        current_labels[k] = v
+
+if current_theme and current_labels:
+    match = True
+    for k, v in selectors.items():
+        if not label_matches(current_labels.get(k), v):
+            match = False
+            break
+    if match:
+        matches.append((current_theme, dict(current_labels)))
+
+for name, labels in matches:
+    label_str = ' '.join(f"{k}={v}" for k, v in sorted(labels.items()))
+    print(f"{name}|{label_str}")
+PYEOF
+)
+
+if [ -z "$RESULTS" ]; then
+    echo "No themes match selectors: ${SELECTORS[*]}"
+    exit 1
+fi
+
+# Count matches
+COUNT=$(echo "$RESULTS" | wc -l | xargs)
+
+if $RANDOM_PICK; then
+    # Pick random (macOS compatible)
+    PICK=$(echo "$RESULTS" | awk 'BEGIN{srand()}{a[NR]=$0}END{print a[int(rand()*NR)+1]}')
+    THEME_NAME=$(echo "$PICK" | cut -d'|' -f1)
+    LABELS=$(echo "$PICK" | cut -d'|' -f2)
+
+    echo -e "${GREEN}Selected:${NC} $THEME_NAME"
+    echo -e "${CYAN}Labels:${NC} $LABELS"
+
+    if $APPLY; then
+        # Update ghostty config
+        if [ -f "$GHOSTTY_CONFIG" ]; then
+            # Remove existing theme line and add new one
+            grep -v "^theme" "$GHOSTTY_CONFIG" > "$GHOSTTY_CONFIG.tmp" || true
+            echo "theme = $THEME_NAME" >> "$GHOSTTY_CONFIG.tmp"
+            mv "$GHOSTTY_CONFIG.tmp" "$GHOSTTY_CONFIG"
+        else
+            mkdir -p "$(dirname "$GHOSTTY_CONFIG")"
+            echo "theme = $THEME_NAME" > "$GHOSTTY_CONFIG"
+        fi
+        echo -e "${GREEN}Applied to config!${NC} Reload ghostty (Cmd+Shift+,)"
+    fi
+else
+    # List all matches
+    echo -e "${CYAN}Matches (${COUNT}):${NC}"
+    echo ""
+    echo "$RESULTS" | while IFS='|' read -r name labels; do
+        echo -e "  ${GREEN}$name${NC}"
+        echo -e "    $labels"
+    done
+fi

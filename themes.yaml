@@ -1,0 +1,436 @@
+# Ghostty Theme Metadata
+# Kubernetes-style labels for vibe-based theme selection
+#
+# Usage: ./theme-select.sh vibe=action energy=high
+#        ./theme-select.sh use-case=test
+#        ./theme-select.sh mood=cozy --random
+
+apiVersion: v1
+kind: ThemeList
+items:
+
+  # === ACTION / LAUNCH ===
+  - name: Cyberpunk
+    labels:
+      vibe: action, security
+      energy: high
+      mood: intense
+      use-case: launch
+      brightness: dark
+
+  - name: Laser
+    labels:
+      vibe: action
+      energy: high
+      mood: electric
+      use-case: demo
+      brightness: dark
+
+  - name: Blazer
+    labels:
+      vibe: action
+      energy: high
+      mood: bold
+      use-case: launch
+      brightness: dark
+
+  - name: Ultra Violent
+    labels:
+      vibe: action
+      energy: extreme
+      mood: aggressive
+      use-case: crunch
+      brightness: dark
+
+  - name: Neon
+    labels:
+      vibe: action
+      energy: high
+      mood: electric
+      use-case: demo
+      brightness: dark
+
+  - name: Challenger Deep
+    labels:
+      vibe: action, security
+      energy: medium
+      mood: mysterious
+      use-case: exploration
+      brightness: dark
+
+  # === FOCUS / DEEP WORK ===
+  - name: Zenburn
+    labels:
+      vibe: focus
+      energy: low
+      mood: calm
+      use-case: reading
+      brightness: dark
+
+  - name: Mellow
+    labels:
+      vibe: focus
+      energy: low
+      mood: relaxed
+      use-case: writing
+      brightness: dark
+
+  - name: Deep
+    labels:
+      vibe: focus
+      energy: low
+      mood: contemplative
+      use-case: thinking
+      brightness: dark
+
+  - name: Nocturnal Winter
+    labels:
+      vibe: focus
+      energy: low
+      mood: cold
+      use-case: late-night
+      brightness: dark
+
+  - name: Embark
+    labels:
+      vibe: focus
+      energy: medium
+      mood: determined
+      use-case: new-project
+      brightness: dark
+
+  - name: Midnight In Mojave
+    labels:
+      vibe: focus
+      energy: low
+      mood: serene
+      use-case: late-night
+      brightness: dark
+
+  # === TEST / TRIAL / EXPERIMENTAL ===
+  - name: Hot Dog Stand
+    labels:
+      vibe: chaos
+      energy: extreme
+      mood: absurd
+      use-case: test
+      brightness: light
+
+  - name: Fairyfloss
+    labels:
+      vibe: playful
+      energy: medium
+      mood: whimsical
+      use-case: trial
+      brightness: dark
+
+  - name: Banana Blueberry
+    labels:
+      vibe: playful
+      energy: medium
+      mood: fruity
+      use-case: test
+      brightness: dark
+
+  - name: Unikitty
+    labels:
+      vibe: playful
+      energy: high
+      mood: rainbow
+      use-case: trial
+      brightness: light
+
+  # === COZY / COFFEE SHOP ===
+  - name: Espresso
+    labels:
+      vibe: cozy
+      energy: low
+      mood: warm
+      use-case: morning
+      brightness: dark
+
+  - name: Coffee Theme
+    labels:
+      vibe: cozy
+      energy: low
+      mood: warm
+      use-case: morning
+      brightness: dark
+
+  - name: Firewatch
+    labels:
+      vibe: cozy
+      energy: low
+      mood: sunset
+      use-case: evening
+      brightness: dark
+
+  - name: Lovelace
+    labels:
+      vibe: cozy
+      energy: low
+      mood: elegant
+      use-case: writing
+      brightness: dark
+
+  - name: Rose Pine
+    labels:
+      vibe: cozy
+      energy: low
+      mood: soft
+      use-case: default
+      brightness: dark
+
+  - name: Misterioso
+    labels:
+      vibe: cozy
+      energy: low
+      mood: mysterious
+      use-case: evening
+      brightness: dark
+
+  # === NATURE / CALM ===
+  - name: Forest Blue
+    labels:
+      vibe: nature
+      energy: low
+      mood: peaceful
+      use-case: relaxing
+      brightness: dark
+
+  - name: Aurora
+    labels:
+      vibe: nature
+      energy: medium
+      mood: magical
+      use-case: inspiration
+      brightness: dark
+
+  - name: Glacier
+    labels:
+      vibe: nature
+      energy: low
+      mood: cold
+      use-case: focus
+      brightness: dark
+
+  - name: Moonfly
+    labels:
+      vibe: nature
+      energy: low
+      mood: nocturnal
+      use-case: late-night
+      brightness: dark
+
+  - name: Spring
+    labels:
+      vibe: nature
+      energy: medium
+      mood: fresh
+      use-case: morning
+      brightness: light
+
+  - name: Everforest Dark Hard
+    labels:
+      vibe: nature
+      energy: low
+      mood: earthy
+      use-case: default
+      brightness: dark
+
+  # === RETRO / NOSTALGIA ===
+  - name: Homebrew
+    labels:
+      vibe: retro, security
+      energy: low
+      mood: nostalgic
+      use-case: hacking
+      brightness: dark
+
+  - name: C64
+    labels:
+      vibe: retro
+      energy: low
+      mood: nostalgic
+      use-case: throwback
+      brightness: dark
+
+  - name: Apple Classic
+    labels:
+      vibe: retro
+      energy: low
+      mood: nostalgic
+      use-case: throwback
+      brightness: light
+
+  - name: ENCOM
+    labels:
+      vibe: retro
+      energy: medium
+      mood: tron
+      use-case: demo
+      brightness: dark
+
+  - name: Retro
+    labels:
+      vibe: retro
+      energy: medium
+      mood: nostalgic
+      use-case: throwback
+      brightness: dark
+
+  # === SCI-FI / SPACE ===
+  - name: Andromeda
+    labels:
+      vibe: scifi
+      energy: medium
+      mood: cosmic
+      use-case: exploration
+      brightness: dark
+
+  - name: Galaxy
+    labels:
+      vibe: scifi
+      energy: medium
+      mood: vast
+      use-case: thinking
+      brightness: dark
+
+  - name: Spacedust
+    labels:
+      vibe: scifi
+      energy: low
+      mood: drifting
+      use-case: late-night
+      brightness: dark
+
+  - name: Starlight
+    labels:
+      vibe: scifi
+      energy: low
+      mood: dreamy
+      use-case: evening
+      brightness: dark
+
+  - name: Cyberdyne
+    labels:
+      vibe: scifi, security
+      energy: high
+      mood: ominous
+      use-case: hacking
+      brightness: dark
+
+  # === PROFESSIONAL / CLEAN ===
+  - name: GitHub Dark
+    labels:
+      vibe: professional
+      energy: medium
+      mood: neutral
+      use-case: work
+      brightness: dark
+
+  - name: GitHub Light
+    labels:
+      vibe: professional
+      energy: medium
+      mood: neutral
+      use-case: work
+      brightness: light
+
+  - name: Alabaster
+    labels:
+      vibe: professional
+      energy: low
+      mood: clean
+      use-case: reading
+      brightness: light
+
+  - name: Pro
+    labels:
+      vibe: professional, security
+      energy: medium
+      mood: serious
+      use-case: work
+      brightness: dark
+
+  # === DOOM / OMINOUS ===
+  - name: Doom One
+    labels:
+      vibe: ominous, security
+      energy: medium
+      mood: foreboding
+      use-case: crunch
+      brightness: dark
+
+  - name: Alien Blood
+    labels:
+      vibe: ominous, security
+      energy: high
+      mood: danger
+      use-case: hacking
+      brightness: dark
+
+  - name: Sleepy Hollow
+    labels:
+      vibe: ominous
+      energy: low
+      mood: spooky
+      use-case: halloween
+      brightness: dark
+
+  - name: The Hulk
+    labels:
+      vibe: ominous
+      energy: high
+      mood: rage
+      use-case: debugging
+      brightness: dark
+
+  # === POPULAR DEFAULTS ===
+  - name: Catppuccin Mocha
+    labels:
+      vibe: balanced
+      energy: medium
+      mood: soft
+      use-case: default
+      brightness: dark
+
+  - name: Dracula
+    labels:
+      vibe: balanced, security
+      energy: medium
+      mood: cool
+      use-case: default
+      brightness: dark
+
+  - name: TokyoNight
+    labels:
+      vibe: balanced
+      energy: medium
+      mood: urban
+      use-case: default
+      brightness: dark
+
+  - name: Nord
+    labels:
+      vibe: balanced
+      energy: low
+      mood: arctic
+      use-case: default
+      brightness: dark
+
+  - name: Gruvbox Dark
+    labels:
+      vibe: balanced
+      energy: medium
+      mood: warm
+      use-case: default
+      brightness: dark
+
+  - name: Kanagawa Wave
+    labels:
+      vibe: balanced
+      energy: low
+      mood: artistic
+      use-case: default
+      brightness: dark
