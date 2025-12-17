@@ -35,6 +35,21 @@ Themes are tagged with Kubernetes-style labels:
 | `mood` | calm, intense, electric, mysterious, warm, cold, danger, etc. |
 | `use-case` | default, hacking, work, test, morning, evening, etc. |
 | `brightness` | dark, light |
+| `feedback` | dislike, favorite |
+
+## Feedback Labels
+
+Mark themes you don't like to exclude them from future selections:
+
+```yaml
+- name: Alien Blood
+  labels:
+    vibe: ominous, security
+    feedback: dislike    # Never selected
+```
+
+- `dislike` - theme is excluded from all searches
+- `favorite` - reserved for future priority features
 
 ## Comma-Separated Values
 

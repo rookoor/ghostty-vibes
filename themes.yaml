@@ -369,6 +369,7 @@ items:
       mood: danger
       use-case: hacking
       brightness: dark
+      feedback: dislike
 
   - name: Sleepy Hollow
     labels:

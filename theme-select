@@ -202,6 +202,11 @@ def label_matches(label_value, search_value):
         return search_value in [x.strip() for x in label_value.split(',')]
     return label_value == search_value
 
+def is_excluded(labels):
+    """Check if theme should be excluded based on feedback"""
+    feedback = labels.get('feedback', '')
+    return feedback == 'dislike'
+
 with open("$THEMES_FILE", 'r') as f:
     for line in f:
         if line.strip().startswith('- name:'):
@@ -211,7 +216,7 @@ with open("$THEMES_FILE", 'r') as f:
                     if not label_matches(current_labels.get(k), v):
                         match = False
                         break
-                if match:
+                if match and not is_excluded(current_labels):
                     matches.append((current_theme, dict(current_labels)))
 
             current_theme = line.split(':', 1)[1].strip()
@@ -224,7 +229,7 @@ with open("$THEMES_FILE", 'r') as f:
                 if len(parts) == 2:
                     k = parts[0].strip()
                     v = parts[1].strip()
-                    if k in ['vibe', 'energy', 'mood', 'use-case', 'brightness']:
+                    if k in ['vibe', 'energy', 'mood', 'use-case', 'brightness', 'feedback']:
                         current_labels[k] = v
 
 if current_theme and current_labels:
@@ -233,7 +238,7 @@ if current_theme and current_labels:
         if not label_matches(current_labels.get(k), v):
             match = False
             break
-    if match:
+    if match and not is_excluded(current_labels):
         matches.append((current_theme, dict(current_labels)))
 
 for name, labels in matches:
