@@ -2,26 +2,37 @@
 
 Kubernetes-style vibe-based theme selector for Ghostty terminal.
 
+## Install
+
+```bash
+git clone https://github.com/rookoor/ghostty-vibes.git
+cd ghostty-vibes
+./install.sh
+```
+
 ## Usage
 
 ```bash
 # List themes by vibe
-./theme-select vibe=action
+theme-select vibe=action
 
 # Multiple selectors (AND)
-./theme-select vibe=security energy=high
+theme-select vibe=security energy=high
 
 # Random pick
-./theme-select vibe=cozy --random
+theme-select vibe=cozy --random
 
 # Apply to ghostty config
-./theme-select vibe=security --apply
+theme-select vibe=security --apply
+
+# Toggle dislike on current theme
+theme-select --dislike
 
 # List all available labels
-./theme-select --list-labels
+theme-select --list-labels
 
 # Show current theme
-./theme-select --current
+theme-select --current
 ```
 
 ## Labels
@@ -111,16 +122,6 @@ This approach ensures:
 | `themes.yaml` | Theme metadata with Kubernetes-style labels |
 
 ## Integration
-
-### With Ghostty
-
-```bash
-# Add to your shell profile
-export PATH="$PATH:/path/to/ghostty-vibes"
-
-# Or symlink
-ln -s /path/to/ghostty-vibes/theme-select ~/.local/bin/theme-select
-```
 
 ### With tmux
 
