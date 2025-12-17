@@ -28,6 +28,7 @@ RANDOM_PICK=false
 APPLY=false
 LIST_LABELS=false
 SHOW_CURRENT=false
+TOGGLE_DISLIKE=false
 
 for arg in "$@"; do
     case "$arg" in
@@ -44,6 +45,9 @@ for arg in "$@"; do
         --current|-c)
             SHOW_CURRENT=true
             ;;
+        --dislike|-d)
+            TOGGLE_DISLIKE=true
+            ;;
         --help|-h)
             echo "Usage: theme-select [selectors] [options]"
             echo ""
@@ -55,6 +59,7 @@ for arg in "$@"; do
             echo "  --apply, -a     Apply random match to ghostty config"
             echo "  --list-labels   Show all available label keys and values"
             echo "  --current       Show currently configured theme"
+            echo "  --dislike, -d   Toggle dislike on current theme"
             echo ""
             echo "Examples:"
             echo "  theme-select vibe=action"
@@ -74,6 +79,51 @@ if $SHOW_CURRENT; then
         current=$(grep "^theme" "$GHOSTTY_CONFIG" 2>/dev/null | head -1 | cut -d'=' -f2 | xargs)
         if [ -n "$current" ]; then
             echo -e "${GREEN}Current theme:${NC} $current"
+        else
+            echo "No theme set in config"
+        fi
+    else
+        echo "No ghostty config found"
+    fi
+    exit 0
+fi
+
+# Toggle dislike on current theme
+if $TOGGLE_DISLIKE; then
+    if [ -f "$GHOSTTY_CONFIG" ]; then
+        current=$(grep "^theme" "$GHOSTTY_CONFIG" 2>/dev/null | head -1 | cut -d'=' -f2 | xargs)
+        if [ -n "$current" ]; then
+            python3 << PYEOF
+import re
+
+theme_name = "$current"
+themes_file = "$THEMES_FILE"
+
+with open(themes_file, 'r') as f:
+    content = f.read()
+
+# Find the theme block
+pattern = rf'(- name: {re.escape(theme_name)}\n\s+labels:\n(?:\s+\w[-\w]*: [^\n]+\n)*)'
+match = re.search(pattern, content)
+
+if match:
+    block = match.group(1)
+    if 'feedback: dislike' in block:
+        # Remove dislike
+        new_block = re.sub(r'\n\s+feedback: dislike', '', block)
+        content = content.replace(block, new_block)
+        print(f"!Disliked {theme_name}")
+    else:
+        # Add dislike (before the last newline of the block)
+        new_block = block.rstrip('\n') + '\n      feedback: dislike\n'
+        content = content.replace(block, new_block)
+        print(f"Disliked {theme_name}")
+
+    with open(themes_file, 'w') as f:
+        f.write(content)
+else:
+    print(f"Theme '{theme_name}' not found in themes.yaml")
+PYEOF
         else
             echo "No theme set in config"
         fi
