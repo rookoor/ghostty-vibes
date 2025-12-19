@@ -178,11 +178,17 @@ if $SYNC_WINDOW; then
     if [ -n "$TMUX" ]; then
         WINDOW_THEME=$(tmux show-window-option -v @theme 2>/dev/null || echo "")
         if [ -n "$WINDOW_THEME" ]; then
-            # Apply theme to config
-            if [ -f "$GHOSTTY_CONFIG" ]; then
-                grep -v "^theme" "$GHOSTTY_CONFIG" > "$GHOSTTY_CONFIG.tmp" || true
-                echo "theme = $WINDOW_THEME" >> "$GHOSTTY_CONFIG.tmp"
-                mv "$GHOSTTY_CONFIG.tmp" "$GHOSTTY_CONFIG"
+            # Check if theme is different from current
+            CURRENT_THEME=$(grep "^theme" "$GHOSTTY_CONFIG" 2>/dev/null | cut -d'=' -f2 | xargs)
+            if [ "$WINDOW_THEME" != "$CURRENT_THEME" ]; then
+                # Apply theme to config
+                if [ -f "$GHOSTTY_CONFIG" ]; then
+                    grep -v "^theme" "$GHOSTTY_CONFIG" > "$GHOSTTY_CONFIG.tmp" || true
+                    echo "theme = $WINDOW_THEME" >> "$GHOSTTY_CONFIG.tmp"
+                    mv "$GHOSTTY_CONFIG.tmp" "$GHOSTTY_CONFIG"
+                fi
+                # Trigger Ghostty reload via AppleScript
+                osascript -e 'tell application "System Events" to keystroke "," using {command down, shift down}' 2>/dev/null &
             fi
         fi
     fi
